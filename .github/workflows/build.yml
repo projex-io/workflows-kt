@@ -1,0 +1,22 @@
+name: Kotlin Build and Test
+
+on:
+  workflow_call:
+    inputs:
+      kotlin-version:
+        required: false
+        default: '21'
+        type: string
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: ${{ inputs.kotlin-version }}
+      - name: Build and test
+        run: ./gradlew build
