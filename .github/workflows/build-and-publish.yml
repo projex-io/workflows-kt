@@ -71,3 +71,14 @@ jobs:
           IMAGE="ghcr.io/${{ github.repository }}"
           docker push "$IMAGE:${{ env.TAG }}"
           docker push "$IMAGE:latest"
+
+  release_drafter:
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: release-drafter/release-drafter@v5
+        with:
+          config-name: release-drafter.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
