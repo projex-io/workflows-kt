@@ -7,10 +7,6 @@ on:
         required: false
         default: '21'
         type: string
-on:
-  create:
-    branches:
-      - '*'
 
 jobs:
   auto_pr:

@@ -19,4 +19,4 @@ jobs:
           distribution: 'temurin'
           java-version: ${{ inputs.kotlin-version }}
       - name: Build and test
-        run: ./gradlew build
+        run: ./gradlew build --no-daemon
