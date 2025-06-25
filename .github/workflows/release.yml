@@ -15,7 +15,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Get release notes from draft
         id: draft_release
@@ -63,7 +63,7 @@ jobs:
             });
 
       - name: Set up JDK
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '21'
@@ -80,13 +80,14 @@ jobs:
 
       - name: Build and push Docker image
         run: |
-          VERSION=${{ github.ref_name }}
-          IMAGE=ghcr.io/${{ github.repository }}
+          VERSION="${{ github.ref_name }}"
+          IMAGE="ghcr.io/${{ github.repository }}"
 
           echo "🔧 Building Docker image: $IMAGE:$VERSION"
-          docker build -t $IMAGE:$VERSION .
-          docker tag $IMAGE:$VERSION
-          docker push $IMAGE:$VERSION
+          docker build -t "$IMAGE:$VERSION" .
+          docker tag "$IMAGE:$VERSION" "$IMAGE:latest"
+          docker push "$IMAGE:$VERSION"
+          docker push "$IMAGE:latest"
 
       - name: Cleanup dev-* tags from GHCR
         if: success()

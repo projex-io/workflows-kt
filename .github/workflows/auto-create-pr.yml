@@ -2,11 +2,9 @@ name: Auto-create PR on push (except main)
 
 on:
   workflow_call:
-    inputs:
-      kotlin-version:
-        required: false
-        default: '21'
-        type: string
+    secrets:
+      PAT_TOKEN:
+        required: true
 
 jobs:
   auto_pr:
@@ -22,7 +20,7 @@ jobs:
       - name: Extract branch info and PR metadata
         id: vars
         run: |
-          BRANCH_NAME=${{ github.ref_name }}
+          BRANCH_NAME="${{ github.ref_name }}"
 
           case "$BRANCH_NAME" in
             feat/*)     PREFIX="🚀"; RAW_NAME="${BRANCH_NAME#feat/}";     LABEL="feature" ;;
@@ -42,29 +40,38 @@ jobs:
             TITLE="$TITLE_RAW"
           fi
 
-          echo "branch=$BRANCH_NAME" >> $GITHUB_OUTPUT
-          echo "prefix=$PREFIX" >> $GITHUB_OUTPUT
-          echo "raw_name=$RAW_NAME" >> $GITHUB_OUTPUT
-          echo "label=$LABEL" >> $GITHUB_OUTPUT
-          echo "title=$TITLE" >> $GITHUB_OUTPUT
+          {
+            echo "branch=$BRANCH_NAME"
+            echo "prefix=$PREFIX"
+            echo "raw_name=$RAW_NAME"
+            echo "label=$LABEL"
+            echo "title=$TITLE"
+          } >> "$GITHUB_OUTPUT"
 
       - name: Check if PR exists
         id: check_pr
         run: |
           EXISTING_PR=$(gh pr list --head "${{ steps.vars.outputs.branch }}" --state open --json number --jq '.[0].number' || echo "")
           if [ -z "$EXISTING_PR" ]; then
-            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "exists=false" >> "$GITHUB_OUTPUT"
           else
-            echo "exists=true" >> $GITHUB_OUTPUT
-            echo "pr_number=$EXISTING_PR" >> $GITHUB_OUTPUT
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "pr_number=$EXISTING_PR" >> "$GITHUB_OUTPUT"
           fi
 
       - name: Create PR if none exists
         if: steps.check_pr.outputs.exists == 'false'
         run: |
-          gh pr create \
-            --title "${{ steps.vars.outputs.title }}" \
-            --body "Auto-generated PR" \
-            --head "${{ steps.vars.outputs.branch }}" \
-            --base main \
-            $(if [ -n "${{ steps.vars.outputs.label }}" ]; then echo "--label ${{ steps.vars.outputs.label }}"; fi) \
+          LABEL="${{ steps.vars.outputs.label }}"
+          BRANCH="${{ steps.vars.outputs.branch }}"
+          TITLE="${{ steps.vars.outputs.title }}"
+
+          ARGS=(--title "$TITLE" --body "Auto-generated PR" --head "$BRANCH" --base main)
+
+          if [ -n "$LABEL" ]; then
+            ARGS+=(--label "$LABEL")
+          fi
+
+          gh pr create "${ARGS[@]}"
+      
+      
