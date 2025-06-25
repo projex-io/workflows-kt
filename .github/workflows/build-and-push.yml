@@ -1,4 +1,4 @@
-name: Build and Push Docker Image
+name: Build and Publish Docker Image on main
 
 on:
   workflow_call:
@@ -15,18 +15,36 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Java 21
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
-          java-version: ${{ inputs.java-version }}
           distribution: 'temurin'
+          java-version: ${{ inputs.java-version }}
 
-      - name: Build with Gradle
+      - name: Build and Test
         run: ./gradlew clean build --no-daemon
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifacts
+          path: build/libs
+
+  docker:
+    needs: build
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: build-artifacts
+          path: build/libs
 
       - name: Define Docker Tag (dev version)
         id: generate_tag
@@ -53,10 +71,3 @@ jobs:
           IMAGE="ghcr.io/${{ github.repository }}"
           docker push "$IMAGE:${{ env.TAG }}"
           docker push "$IMAGE:latest"
-
-      - name: List GHCR tags (optional)
-        run: |
-          gh api -H "Accept: application/vnd.github+json" \
-            /orgs/projex-io/packages/container/taskora-back/versions | jq '.[].metadata.container.tags'
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
