@@ -26,7 +26,7 @@ jobs:
             feat/*)     PREFIX="🚀"; RAW_NAME="${BRANCH_NAME#feat/}";     LABEL="feature" ;;
             fix/*)      PREFIX="🐛"; RAW_NAME="${BRANCH_NAME#fix/}";      LABEL="bug" ;;
             docs/*)     PREFIX="📚"; RAW_NAME="${BRANCH_NAME#docs/}";     LABEL="documentation" ;;
-            ref/*)      PREFIX="♻️"; RAW_NAME="${BRANCH_NAME#refactor/}"; LABEL="refactor" ;;
+            ref/*)      PREFIX="♻️"; RAW_NAME="${BRANCH_NAME#ref/}";      LABEL="refactor" ;;
             perf/*)     PREFIX="⚡";  RAW_NAME="${BRANCH_NAME#perf/}";     LABEL="performance" ;;
             clean/*)    PREFIX="🧹"; RAW_NAME="${BRANCH_NAME#clean/}";    LABEL="clean" ;;
             build/*)    PREFIX="🛠️"; RAW_NAME="${BRANCH_NAME#build/}";    LABEL="build" ;;
